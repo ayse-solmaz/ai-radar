@@ -62,7 +62,7 @@ def _fetch_with_retry(feed):
         except requests.RequestException as e:
             return [], type(e).__name__
         if r.status_code == 429:
-            time.sleep(5 * (attempt + 1))
+            time.sleep(10 * (attempt + 1))  # 10, 20 sn: Reddit kısa beklemede yine reddediyor
             continue
         if r.status_code != 200:
             return [], f"HTTP {r.status_code}"

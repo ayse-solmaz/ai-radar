@@ -1,6 +1,9 @@
 # AI Radar kaynak listesi
 # Yeni kaynak eklemek için ilgili kategorinin altına name + url yazman yeterli.
 #
+# Not: *.substack.com adresleri GitHub sunucularından 403 veriyor; kendi alan adı olan
+# Substack'ler (örn. www.oneusefulthing.org/feed) çalışıyor.
+#
 # Kaynak ayarları (hepsi isteğe bağlı; "hours" kategoriye de yazılabilir):
 #   filter: true  -> sadece "interests" listesindeki kelimeleri içeren yazıları al
 #                    (arXiv gibi günde yüzlerce yazı gelen kaynaklar için)
@@ -119,10 +122,6 @@ categories:
         url: https://www.thealgorithmicbridge.com/feed
       - name: Nathan Benaich (Air Street)
         url: https://press.airstreet.com/feed
-      - name: Gary Marcus   # eleştirel bakış
-        url: https://garymarcus.substack.com/feed
-      - name: Nate B Jones
-        url: https://natesnewsletter.substack.com/feed
       - name: Casey Newton (Platformer)   # genel teknoloji: sadece AI yazıları
         url: https://www.platformer.news/rss/
         filter: true
@@ -141,8 +140,6 @@ categories:
         url: https://magazine.sebastianraschka.com/feed
       - name: Nathan Lambert (Interconnects)
         url: https://www.interconnects.ai/feed
-      - name: Cameron Wolfe (Deep Learning Focus)
-        url: https://cameronrwolfe.substack.com/feed
       - name: Jason Wei
         url: https://www.jasonwei.net/blog?format=rss
       - name: Charlie Guo (Artificial Ignorance)
