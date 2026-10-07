@@ -97,26 +97,76 @@ categories:
       - name: GitHub Blog (AI/ML)
         url: https://github.blog/ai-and-ml/feed/
 
-  - name: "🧠 Araştırmacı blogları ve bültenler"
+  - name: "🗞️ Gündemi yorumlayan yazarlar"
+    hours: 168   # çoğu haftada birkaç kez yazıyor; seen.json tekrarları engeller
     feeds:
-      - name: AINews (smol.ai)
-        url: https://news.smol.ai/rss.xml
-      - name: Simon Willison
+      - name: Zvi Mowshowitz   # haftalık dev AI gündem özetleri
+        url: https://thezvi.wordpress.com/feed/
+        limit: 4
+      - name: Simon Willison   # yeni modelleri ve araçları ilk deneyenlerden
         url: https://simonwillison.net/atom/everything/
+      - name: Ethan Mollick (One Useful Thing)
+        url: https://www.oneusefulthing.org/feed
+      - name: Timothy B. Lee (Understanding AI)
+        url: https://www.understandingai.org/feed
+      - name: Narayanan & Kapoor (AI as Normal Technology)
+        url: https://www.normaltech.ai/feed
+      - name: Azeem Azhar (Exponential View)
+        url: https://www.exponentialview.co/feed
+      - name: Dwarkesh Patel
+        url: https://www.dwarkesh.com/feed
+      - name: Alberto Romero (Algorithmic Bridge)
+        url: https://www.thealgorithmicbridge.com/feed
+      - name: Nathan Benaich (Air Street)
+        url: https://press.airstreet.com/feed
+      - name: Gary Marcus   # eleştirel bakış
+        url: https://garymarcus.substack.com/feed
+      - name: Nate B Jones
+        url: https://natesnewsletter.substack.com/feed
+      - name: Casey Newton (Platformer)   # genel teknoloji: sadece AI yazıları
+        url: https://www.platformer.news/rss/
+        filter: true
+      - name: Ben Thompson (Stratechery)   # genel teknoloji: sadece AI yazıları
+        url: https://stratechery.com/feed/
+        filter: true
+
+  - name: "🧠 Araştırmacı blogları"
+    hours: 168
+    feeds:
       - name: Andrej Karpathy
         url: https://karpathy.bearblog.dev/feed/
       - name: Lilian Weng
         url: https://lilianweng.github.io/index.xml
       - name: Sebastian Raschka
         url: https://magazine.sebastianraschka.com/feed
-      - name: Interconnects (Nathan Lambert)
+      - name: Nathan Lambert (Interconnects)
         url: https://www.interconnects.ai/feed
-      - name: Latent Space
-        url: https://www.latent.space/feed
-      - name: Import AI (Jack Clark)
-        url: https://importai.substack.com/feed
+      - name: Cameron Wolfe (Deep Learning Focus)
+        url: https://cameronrwolfe.substack.com/feed
+      - name: Jason Wei
+        url: https://www.jasonwei.net/blog?format=rss
+      - name: Charlie Guo (Artificial Ignorance)
+        url: https://www.ignorance.ai/feed
       - name: The Gradient
         url: https://thegradient.pub/rss/
+
+  - name: "📬 Bültenler"
+    hours: 72
+    feeds:
+      - name: AINews (smol.ai)
+        url: https://news.smol.ai/rss.xml
+      - name: TLDR AI
+        url: https://tldr.tech/api/rss/ai
+      - name: The Rundown AI
+        url: https://rss.beehiiv.com/feeds/2R3C6Bt5wj.xml
+      - name: Ben's Bites
+        url: https://www.bensbites.com/feed
+      - name: Import AI (Jack Clark)
+        url: https://jack-clark.net/feed/
+      - name: Latent Space
+        url: https://www.latent.space/feed
+      - name: Last Week in AI
+        url: https://lastweekin.ai/feed
 
   - name: "✍️ Topluluk yazıları"
     feeds:
@@ -196,6 +246,8 @@ categories:
         url: https://techcrunch.com/category/artificial-intelligence/feed/
       - name: MIT Technology Review
         url: https://www.technologyreview.com/topic/artificial-intelligence/feed
+      - name: The Decoder
+        url: https://the-decoder.com/feed/
 
   - name: "🎥 Videolar"
     hours: 168   # kanallar haftada bir-iki video atıyor
