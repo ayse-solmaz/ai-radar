@@ -20,6 +20,8 @@
   }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 "Poppins", system-ui, "Segoe UI", sans-serif; }
+  /* Her şey küçük harf. İngilizce içerik lang="en" ile işaretli; yoksa Türkçe kuralıyla "AI" -> "aı" olurdu */
+  body, input, textarea, select, button { text-transform:lowercase; }
   .topbar { background:var(--head-bg); color:var(--head-text); }
   .topbar header { max-width:820px; margin:0 auto; padding:22px 16px 18px; }
   main { max-width:820px; margin:0 auto; padding:0 16px 64px; }
@@ -33,9 +35,12 @@
   input::placeholder { color:var(--muted); opacity:.8; }
   button { cursor:pointer; }
 
-  #tags { background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:12px 16px; margin:20px 0 0; }
-  #tags summary { cursor:pointer; font-weight:700; }
-  #tags .hint { color:var(--muted); font-size:13px; margin:6px 0 10px; }
+  .panel { background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:12px 16px; margin:12px 0 0; }
+  .panel:first-of-type { margin-top:20px; }
+  .panel summary { cursor:pointer; font-weight:700; }
+  .panel .hint { color:var(--muted); font-size:13px; margin:6px 0 10px; }
+  .panel h3 { font-size:15px; font-weight:700; margin:18px 0 0; }
+  textarea { width:100%; font:inherit; font-size:14px; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px 10px; resize:vertical; }
   .chips { display:flex; flex-wrap:wrap; gap:6px; }
   .chip { display:inline-flex; align-items:center; background:var(--badge); color:var(--accent); border-radius:999px; font-size:13px; font-weight:500; }
   .chip button { background:none; border:0; color:inherit; padding:3px 4px 3px 11px; font-weight:500; }
@@ -44,14 +49,22 @@
   .chip b { font-weight:400; opacity:.7; margin-left:4px; }
   .chip.zero b { opacity:.4; }
   .chip.off { background:none; color:var(--off); box-shadow:inset 0 0 0 1px var(--line); text-decoration:line-through; }
-  .tag-tools { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-  .tag-tools input { flex:1 1 180px; min-width:0; }
-  .tag-tools button { background:var(--card); border:1.5px solid var(--navy); border-radius:8px; padding:6px 14px; font-weight:500; }
-  .tag-tools button.primary { background:var(--navy); color:var(--white); font-weight:700; }
+  .tag-tools, .tools { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .tag-tools input, .tools input { flex:1 1 180px; min-width:0; }
+  .tag-tools button, .btn { display:inline-block; background:var(--card); color:var(--text); border:1.5px solid var(--navy); border-radius:8px; padding:6px 14px; font-weight:500; font-size:14px; text-decoration:none; }
+  .tag-tools button.primary, .btn.primary { background:var(--navy); color:var(--white); font-weight:700; }
   @media (prefers-color-scheme: dark) {
-    .tag-tools button { border-color:var(--white); }
-    .tag-tools button.primary { background:var(--white); color:var(--navy); }
+    .tag-tools button, .btn { border-color:var(--white); }
+    .tag-tools button.primary, .btn.primary { background:var(--white); color:var(--navy); }
   }
+  .btn[aria-disabled] { opacity:.45; cursor:not-allowed; }
+  .mini { list-style:none; padding:0; margin:10px 0 0; }
+  .mini li { display:flex; gap:8px; align-items:baseline; padding:6px 0; border-top:1px solid var(--line); font-size:14px; }
+  .mini li a { color:var(--text); font-weight:500; text-decoration:none; flex:1; overflow-wrap:anywhere; }
+  .mini li a:hover { text-decoration:underline; }
+  .mini li small { color:var(--muted); white-space:nowrap; }
+  .mini li button { background:none; border:0; color:var(--muted); padding:0 4px; }
+  .empty-note { color:var(--muted); font-size:13.5px; margin:8px 0 0; }
 
   nav { display:flex; flex-wrap:wrap; gap:8px; position:sticky; top:0; padding:12px 0; background:var(--bg); z-index:1; }
   nav a { text-decoration:none; color:var(--text); background:var(--card); border:1.5px solid var(--line); border-radius:999px; padding:4px 12px; font-size:13px; font-weight:500; }
@@ -71,8 +84,10 @@
   a.thumb { float:right; margin:0 0 6px 12px; }
   a.thumb img { display:block; width:160px; aspect-ratio:16/9; object-fit:cover; border-radius:8px; }
   @media (max-width:520px) { a.thumb { float:none; margin:0 0 8px; } a.thumb img { width:100%; } }
-  a.ask { display:inline-block; margin-top:8px; font-size:12.5px; font-weight:700; color:var(--accent); text-decoration:none; border:1.5px solid var(--line); border-radius:999px; padding:2px 12px; }
-  a.ask:hover { border-color:var(--accent); }
+  .actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .ask { display:inline-block; font:inherit; font-size:12.5px; font-weight:700; color:var(--accent); background:none; text-decoration:none; border:1.5px solid var(--line); border-radius:999px; padding:2px 12px; cursor:pointer; }
+  .ask:hover { border-color:var(--accent); }
+  .ask.saved { background:var(--badge); border-color:var(--accent); }
   .empty { color:var(--muted); }
   details.errors { margin-top:32px; color:var(--muted); }
 </style>
@@ -81,7 +96,7 @@
 <div class="topbar">
   <header>
     <div>
-      <h1><a id="home" href="#">📡 AI Radar</a></h1>
+      <h1 lang="en"><a id="home" href="#">📡 AI Radar</a></h1>
       <p id="stats"></p>
     </div>
     <select id="archive" aria-label="Önceki taramalar" hidden></select>
@@ -89,14 +104,40 @@
 </div>
 <main>
 
-  <details id="tags">
+  <details id="me" class="panel">
+    <summary>🧠 Mini ben</summary>
+    <p class="hint">
+      Kendini birkaç cümleyle anlat: ne biliyorsun, neyi öğrenmek istiyorsun, hangi araçları kullanıyorsun, ne tür projeler seversin.
+      Sayfadaki tüm 🤖 💡 🧠 🎓 butonları bunu Claude'a götürür, cevaplar sana göre gelir. Sadece bu tarayıcıda saklanır.
+    </p>
+    <textarea id="profile" rows="3" placeholder="Örn: Python ve biraz PyTorch biliyorum. LLM'lerle uygulama geliştirmeyi, özellikle agent ve RAG'i öğrenmek istiyorum. Hafta sonu projeleri severim, Türkçe veriyle çalışmak ilgimi çekiyor."></textarea>
+    <div class="tools">
+      <a class="btn primary" id="brainstorm" target="_blank" rel="noopener">🧠 Bugünün beyin fırtınası</a>
+      <a class="btn" id="weekly" target="_blank" rel="noopener">📝 Defterimi özetle</a>
+    </div>
+    <h3>🎓 Öğrenme yolu</h3>
+    <form class="tools" id="learn-form">
+      <input type="text" id="learn-input" list="learn-tags" placeholder="bir konu yaz ya da seç (örn. rag)" aria-label="Öğrenilecek konu">
+      <datalist id="learn-tags"></datalist>
+      <button class="btn primary" type="submit">Göster</button>
+    </form>
+    <div id="learn-out" lang="en"></div>
+  </details>
+
+  <details id="notebook" class="panel">
+    <summary>⭐ Defterim <span id="nb-count"></span></summary>
+    <p class="hint">Yazılardaki ☆ ile kaydettiklerin burada birikir (bu tarayıcıda, sen silene kadar).</p>
+    <div id="nb-list" lang="en"></div>
+  </details>
+
+  <details id="tags" class="panel">
     <summary>🏷️ İlgi alanların <span id="tag-count"></span></summary>
     <p class="hint">
       Sayıdaki rakam, o etiketin bu taramada kaç yazıda geçtiği. Etikete tıklayınca kapanır/açılır, × siler.
       Çekimli halleri de otomatik bulunur (llm → LLMs, quantization → quantized, fine-tuning → fine-tuned).
       Değişiklikler sadece bu tarayıcıda saklanır. Kalıcı yapmak için "Kopyala"ya bas ve <code>feeds.yaml</code>'daki listeye yapıştır.
     </p>
-    <div class="chips" id="chips"></div>
+    <div class="chips" id="chips" lang="en"></div>
     <form class="tag-tools" id="add-form">
       <input type="text" id="add-input" placeholder="yeni etiket(ler), virgülle ayır" aria-label="Yeni etiket">
       <button class="primary" type="submit">Ekle</button>
@@ -170,7 +211,8 @@ function timeAgo(iso) {
   return `${Math.floor(m / 1440)} gün önce`;
 }
 
-for (const item of D.items) {
+for (const [idx, item] of D.items.entries()) {
+  item.idx = idx;
   item.lc = `${item.t} ${item.s}`.toLowerCase();
   item.time = item.d ? Date.parse(item.d) : 0;
 }
@@ -191,15 +233,105 @@ function renderTags(counts) {
   $("reset").hidden = isDefault();
 }
 
-// Yazıyı claude.ai'de, basitleştirme ve tartışma talimatıyla açar
-function claudeLink(item) {
-  const prompt = `Şu yazıyı oku: ${item.l}\nBaşlık: ${item.t}\n\n` +
-    "Yapay zekayı teknik olarak takip eden biriyim ama bu konunun uzmanı değilim. Türkçe ve sade anlat:\n" +
-    "1. 3-4 cümlelik basit özet\n2. Ana fikir ve neden önemli\n" +
+// ---------- Mini ben: Claude'a giden istekler ----------
+// Hepsi claude.ai'yi hazır bir mesajla açar; API anahtarı gerekmez, kullanıcının kendi Claude hesabı kullanılır.
+const store = {
+  get(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key)); return v ?? fallback; } catch (e) { return fallback; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} },
+};
+const MAX_PROMPT = 7000;  // çok uzun linkler bazı tarayıcılarda sorun çıkarır
+
+function claudeURL(prompt) {
+  if (prompt.length > MAX_PROMPT) prompt = prompt.slice(0, MAX_PROMPT) + "…";
+  return "https://claude.ai/new?q=" + encodeURIComponent(prompt);
+}
+function aboutMe() {
+  const p = store.get("ai-radar.profile", "").trim();
+  return p ? `Hakkımda: ${p}\n\n` : "Yapay zekayı teknik olarak takip eden biriyim ama her konunun uzmanı değilim.\n\n";
+}
+const short = (s, n) => s.length > n ? s.slice(0, n).replace(/\s+\S*$/, "") + "…" : s;
+const itemLine = (item, n) => `${n + 1}. ${item.t} (${D.feeds[item.f].name}) — ${item.l}` + (item.s ? `\n   ${short(item.s, 160)}` : "");
+
+function simplifyURL(item) {
+  return claudeURL(`${aboutMe()}Şu içeriği oku: ${item.l}\nBaşlık: ${item.t}\n\n` +
+    "Türkçe ve sade anlat:\n1. 3-4 cümlelik basit özet\n2. Ana fikir ve neden önemli\n" +
     "3. Bilmem gereken kavramlar (her biri tek cümleyle)\n" +
     "4. Eleştirel bakış: sınırlamalar, abartılı olabilecek iddialar\n\n" +
-    "Sonra bu yazı üzerine tartışalım: bana düşündürücü 2 soru sor.";
-  return "https://claude.ai/new?q=" + encodeURIComponent(prompt);
+    "Sonra bu içerik üzerine tartışalım: bana düşündürücü 2 soru sor.");
+}
+function projectURL(item) {
+  return claudeURL(`${aboutMe()}Şu içerikten ilham alarak bana proje fikirleri üret: ${item.l}\nBaşlık: ${item.t}\n\n` +
+    "Önce içeriği 2 cümleyle özetle. Sonra benim seviyeme uygun 3 proje fikri ver:\n" +
+    "- ⚡ Hafta sonu projesi (1-2 gün)\n- 🛠️ Bir haftalık proje\n- 🚀 İddialı proje\n" +
+    "Her biri için: ne yapar, neden ilginç, kullanılacak araçlar/modeller ve ilk 3 adım. " +
+    "Sonra hangisini seçmem gerektiğini bana sorarak tartışalım. Türkçe yaz.");
+}
+function brainstormURL(items) {
+  return claudeURL(`${aboutMe()}Bugün yapay zeka dünyasında öne çıkanlar:\n${items.map(itemLine).join("\n")}\n\n` +
+    "Kafamdaki beyin gibi davran:\n1. Bu gelişmeleri birbirine bağlayan 2-3 trendi çıkar.\n" +
+    "2. Bunlardan beslenen, bana uygun 5 yaratıcı proje fikri üret (biri çılgın olsun).\n" +
+    "3. Bugün okumam gereken tek içeriği seç ve nedenini söyle.\n\n" +
+    "Sonra fikirler üzerine beyin fırtınasına devam edelim. Türkçe yaz.");
+}
+function weeklyURL(saved) {
+  return claudeURL(`${aboutMe()}Son zamanlarda kaydettiğim içerikler:\n` +
+    saved.map((s, n) => `${n + 1}. ${s.t} (${s.src}) — ${s.l}`).join("\n") + "\n\n" +
+    "Bunlara bakarak:\n1. Kafamda dönen temaları çıkar.\n2. Bunları birleştiren bir proje öner.\n" +
+    "3. Eksik kaldığım bir konu varsa söyle, ne öğrenmem gerektiğini öner.\n4. Bana 3 soru sor. Türkçe yaz.");
+}
+function learnURL(topic, items) {
+  const list = items.length ? `Bugün radarımda bu konuyla ilgili şunlar var:\n${items.map(itemLine).join("\n")}\n\n` : "";
+  return claudeURL(`${aboutMe()}"${topic}" konusunu sıfırdan öğrenmek istiyorum. ${list}` +
+    "Bana bir öğrenme yolu hazırla: temel → orta → ileri aşamalar, her aşamada öğrenmem gereken kavramlar, " +
+    (items.length ? "bu listedeki hangi içeriğe ne zaman bakmam gerektiği, " : "") +
+    "her aşama için küçük bir uygulama alıştırması. Sonra ilk aşamadan başlayıp bana öğret. Türkçe yaz.");
+}
+
+// ---------- Defter (kaydedilen yazılar) ----------
+const NOTEBOOK = "ai-radar.saved";
+let saved = store.get(NOTEBOOK, []).filter(s => s && s.l);
+const isSaved = link => saved.some(s => s.l === link);
+
+function toggleSave(item) {
+  if (isSaved(item.l)) saved = saved.filter(s => s.l !== item.l);
+  else saved.unshift({ l: item.l, t: item.t, src: D.feeds[item.f].name, at: new Date().toISOString() });
+  saved = saved.slice(0, 200);
+  store.set(NOTEBOOK, saved);
+  renderNotebook();
+}
+function renderNotebook() {
+  $("nb-count").textContent = saved.length ? `(${saved.length})` : "";
+  $("nb-list").innerHTML = saved.length
+    ? `<ul class="mini">${saved.map((s, i) =>
+        `<li><a href="${esc(s.l)}" target="_blank" rel="noopener">${esc(s.t)}</a>` +
+        `<small>${esc(s.src)} · ${new Date(s.at).toLocaleDateString("tr-TR")}</small>` +
+        `<button data-unsave="${i}" aria-label="Defterden çıkar">×</button></li>`).join("")}</ul>`
+    : `<p class="empty-note">Henüz kayıt yok. Beğendiğin yazılarda ☆ Kaydet'e bas.</p>`;
+  const weekly = $("weekly");
+  if (saved.length) { weekly.href = weeklyURL(saved.slice(0, 30)); weekly.removeAttribute("aria-disabled"); weekly.title = ""; }
+  else { weekly.removeAttribute("href"); weekly.setAttribute("aria-disabled", "true"); weekly.title = "Önce birkaç yazı kaydet"; }
+  document.querySelectorAll("[data-save]").forEach(btn => {
+    const on = isSaved(D.items[+btn.dataset.save].l);
+    btn.classList.toggle("saved", on);
+    btn.textContent = on ? "★ Kaydedildi" : "☆ Kaydet";
+  });
+}
+
+// ---------- Öğrenme yolu ----------
+// Önce tutorial ve videolar, sonra bloglar, en son diğerleri
+const LEARN_RANK = name => /Öğren/.test(name) ? 0 : /Video/.test(name) ? 1 : /blog/i.test(name) ? 2 : 3;
+function renderLearn(topic) {
+  topic = topic.replace(/\*/g, "").trim().toLowerCase();
+  if (!topic) { $("learn-out").innerHTML = ""; return; }
+  const re = pattern(topic);
+  const items = D.items.filter(i => re.test(i.lc))
+    .sort((a, b) => LEARN_RANK(D.categories[D.feeds[a.f].cat]) - LEARN_RANK(D.categories[D.feeds[b.f].cat]) || b.time - a.time)
+    .slice(0, 12);
+  const list = items.length
+    ? `<ul class="mini">${items.map(i => `<li><a href="${esc(i.l)}" target="_blank" rel="noopener">${i.img ? "🎥 " : ""}${esc(i.t)}</a><small>${esc(D.feeds[i.f].name)}</small></li>`).join("")}</ul>`
+    : `<p class="empty-note">Bu taramada "${esc(topic)}" geçen içerik yok, ama Claude yine de sıfırdan bir yol çıkarabilir.</p>`;
+  $("learn-out").innerHTML = list +
+    `<div class="tools" lang="tr"><a class="btn primary" href="${esc(learnURL(topic, items))}" target="_blank" rel="noopener">🎓 Claude ile öğrenme yolu çıkar</a></div>`;
 }
 
 function renderItem(item) {
@@ -207,9 +339,14 @@ function renderItem(item) {
   const badges = item.hits.map(h => `<span class="badge">${esc(h)}</span>`).join(" ");
   const meta = [esc(feed.name), timeAgo(item.d)].filter(Boolean).join(" · ");
   const thumb = item.img ? `<a class="thumb" href="${esc(item.l)}" target="_blank" rel="noopener" tabindex="-1"><img src="${esc(item.img)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></a>` : "";
-  return `<article>${thumb}<a href="${esc(item.l)}" target="_blank" rel="noopener">${esc(item.t)}</a>` +
+  const on = isSaved(item.l);
+  return `<article lang="en">${thumb}<a href="${esc(item.l)}" target="_blank" rel="noopener">${esc(item.t)}</a>` +
     `<div class="meta">${meta} ${badges}</div>` + (item.s ? `<p>${esc(item.s)}</p>` : "") +
-    `<a class="ask" href="${esc(claudeLink(item))}" target="_blank" rel="noopener">🤖 Basitleştir ve tartış</a></article>`;
+    `<div class="actions" lang="tr">` +
+    `<a class="ask" href="${esc(simplifyURL(item))}" target="_blank" rel="noopener">🤖 Basitleştir ve tartış</a>` +
+    `<a class="ask" href="${esc(projectURL(item))}" target="_blank" rel="noopener">💡 Proje çıkar</a>` +
+    `<button class="ask${on ? " saved" : ""}" data-save="${item.idx}">${on ? "★ Kaydedildi" : "☆ Kaydet"}</button>` +
+    `</div></article>`;
 }
 
 function render() {
@@ -256,10 +393,15 @@ function render() {
   });
   if (!visible.length) body += `<p class="empty">${query ? "Aramaya uyan yazı yok." : "Bu taramada yeni bir şey yok. 🎉"}</p>`;
   if (D.errors.length) {
-    body += `<details class="errors"><summary>⚠️ Ulaşılamayan kaynaklar (${D.errors.length})</summary><ul>` +
+    body += `<details class="errors"><summary>⚠️ Ulaşılamayan kaynaklar (${D.errors.length})</summary><ul lang="en">` +
       D.errors.map(e => `<li>${esc(e)}</li>`).join("") + `</ul></details>`;
   }
   $("body").innerHTML = body;
+
+  // Beyin fırtınası: öne çıkanlar, azsa en yüksek puanlı diğer yazılarla tamamlanır
+  const picks = highlights.concat(visible.filter(i => !highlights.includes(i)).sort(byScore)).slice(0, 8);
+  $("brainstorm").href = brainstormURL(picks);
+  $("learn-tags").innerHTML = active.map(t => `<option value="${esc(t)}">`).join("");
 
   const links = (highlights.length ? [`<a href="#top">🎯 <b>${highlights.length}</b></a>`] : []).concat(
     D.categories.map((name, n) => sections[n].length ? `<a href="#s${n}">${esc(name)} <b>${sections[n].length}</b></a>` : "").filter(Boolean));
@@ -302,9 +444,33 @@ $("copy").addEventListener("click", async () => {
   setTimeout(() => $("copy").textContent = "Kopyala", 2000);
 });
 
-// Etiket panelinin açık/kapalı durumunu hatırla (ilk ziyarette açık)
-try { $("tags").open = localStorage.getItem("ai-radar.tagsOpen") !== "0"; } catch (e) { $("tags").open = true; }
-$("tags").addEventListener("toggle", () => { try { localStorage.setItem("ai-radar.tagsOpen", $("tags").open ? "1" : "0"); } catch (e) {} });
+// Mini ben, defter, öğrenme yolu
+$("profile").value = store.get("ai-radar.profile", "");
+let profileTimer;
+$("profile").addEventListener("input", () => {
+  store.set("ai-radar.profile", $("profile").value);
+  clearTimeout(profileTimer);
+  profileTimer = setTimeout(() => { render(); renderNotebook(); }, 500);  // linkler profili içeriyor
+});
+$("body").addEventListener("click", e => {
+  const btn = e.target.closest("[data-save]");
+  if (btn) toggleSave(D.items[+btn.dataset.save]);
+});
+$("nb-list").addEventListener("click", e => {
+  const btn = e.target.closest("[data-unsave]");
+  if (!btn) return;
+  saved.splice(+btn.dataset.unsave, 1);
+  store.set(NOTEBOOK, saved);
+  renderNotebook();
+});
+$("learn-form").addEventListener("submit", e => { e.preventDefault(); renderLearn($("learn-input").value); });
+
+// Panellerin açık/kapalı durumunu hatırla (ilk ziyarette Mini ben ve etiketler açık)
+for (const [id, openByDefault] of [["me", true], ["notebook", false], ["tags", true]]) {
+  const key = `ai-radar.open.${id}`;
+  $(id).open = store.get(key, openByDefault);
+  $(id).addEventListener("toggle", () => store.set(key, $(id).open));
+}
 
 // Arşiv: index.html "archive/" altındakilere, arşiv sayfaları kardeşlerine bağlanır
 const inArchive = D.current && D.base === "";
@@ -318,6 +484,7 @@ if (D.archive.length > 1) {
 }
 document.title = `AI Radar · ${new Date(D.generated).toLocaleDateString("tr-TR")}`;
 render();
+renderNotebook();
 </script>
 </body>
 </html>
