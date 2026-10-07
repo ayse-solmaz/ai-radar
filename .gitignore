@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Üretilen sayfalar (sitede GitHub Actions üretir, git'e girmez)
+site/
+output/
+radar.log

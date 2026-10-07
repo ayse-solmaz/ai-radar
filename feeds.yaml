@@ -1,0 +1,243 @@
+# AI Radar kaynak listesi
+# Yeni kaynak eklemek için ilgili kategorinin altına name + url yazman yeterli.
+#
+# Kaynak ayarları (hepsi isteğe bağlı; "hours" kategoriye de yazılabilir):
+#   filter: true  -> sadece "interests" listesindeki kelimeleri içeren yazıları al
+#                    (arXiv gibi günde yüzlerce yazı gelen kaynaklar için)
+#   limit: 15     -> bu kaynaktan en fazla kaç yazı gösterilsin
+#   hours: 168    -> bu kaynakta son kaç saate bakılsın (az paylaşan kaynaklar için)
+
+settings:
+  hours: 36            # son kaç saatteki yazılar taransın
+  default_limit: 8     # kaynak başına varsayılan yazı sayısı
+  highlight_min: 2     # en az kaç etiket geçen yazı "öne çıkanlar"a girsin
+
+# İlgi alanların: bu kelimeler geçen yazılar üste çıkar ve rozetle işaretlenir.
+# Bu liste sitedeki VARSAYILAN etiketlerdir; sitede değiştirdiklerin sadece o tarayıcıda kalır.
+# Küçük/büyük harf fark etmez. Çekimli halleri de bulunur
+# (llm -> LLMs, quantization -> quantized, fine-tuning -> fine-tuned).
+interests:
+  # Modeller ve sürümler
+  - llm
+  - open model
+  - open-weight
+  - open-source
+  - frontier model
+  - multimodal
+  - vision-language
+  - reasoning
+  # Agent'lar ve araçlar
+  - agent
+  - agentic
+  - tool use
+  - function calling
+  - mcp
+  - coding agent
+  - rag
+  # Eğitim ve verimlilik
+  - fine-tuning
+  - rlhf
+  - reinforcement learning
+  - distillation
+  - quantization
+  - mixture of experts
+  - small language model
+  - inference
+  - context window
+  # Değerlendirme ve güvenlik
+  - benchmark
+  - interpretability
+  - alignment
+  - ai safety
+  # Senin için
+  - türkçe
+  - turkish
+
+categories:
+  - name: "🔬 Makaleler"
+    feeds:
+      - name: arXiv cs.CL (NLP)
+        url: https://rss.arxiv.org/rss/cs.CL
+        filter: true
+        limit: 15
+      - name: arXiv cs.LG
+        url: https://rss.arxiv.org/rss/cs.LG
+        filter: true
+        limit: 10
+      - name: arXiv cs.AI
+        url: https://rss.arxiv.org/rss/cs.AI
+        filter: true
+        limit: 10
+      - name: HF Daily Papers   # resmi olmayan ayna
+        url: https://papers.takara.ai/api/feed
+        limit: 15
+
+  - name: "🏢 Laboratuvarlar ve şirketler"
+    feeds:
+      - name: OpenAI
+        url: https://openai.com/news/rss.xml
+      - name: Anthropic   # resmi RSS yok, topluluk aynası
+        url: https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml
+      - name: Google DeepMind
+        url: https://deepmind.google/blog/rss.xml
+      - name: Google AI
+        url: https://blog.google/technology/ai/rss/
+      - name: Google Research
+        url: https://research.google/blog/rss/
+      - name: Hugging Face Blog
+        url: https://huggingface.co/blog/feed.xml
+      - name: Microsoft Research
+        url: https://www.microsoft.com/en-us/research/feed/
+      - name: Berkeley AI (BAIR)
+        url: https://bair.berkeley.edu/blog/feed.xml
+      - name: NVIDIA
+        url: https://blogs.nvidia.com/feed/
+      - name: PyTorch
+        url: https://pytorch.org/blog/feed.xml
+      - name: GitHub Blog (AI/ML)
+        url: https://github.blog/ai-and-ml/feed/
+
+  - name: "🧠 Araştırmacı blogları ve bültenler"
+    feeds:
+      - name: AINews (smol.ai)
+        url: https://news.smol.ai/rss.xml
+      - name: Simon Willison
+        url: https://simonwillison.net/atom/everything/
+      - name: Andrej Karpathy
+        url: https://karpathy.bearblog.dev/feed/
+      - name: Lilian Weng
+        url: https://lilianweng.github.io/index.xml
+      - name: Sebastian Raschka
+        url: https://magazine.sebastianraschka.com/feed
+      - name: Interconnects (Nathan Lambert)
+        url: https://www.interconnects.ai/feed
+      - name: Latent Space
+        url: https://www.latent.space/feed
+      - name: Import AI (Jack Clark)
+        url: https://importai.substack.com/feed
+      - name: The Gradient
+        url: https://thegradient.pub/rss/
+
+  - name: "✍️ Topluluk yazıları"
+    feeds:
+      - name: Medium · machine-learning
+        url: https://medium.com/feed/tag/machine-learning
+      - name: Medium · llm
+        url: https://medium.com/feed/tag/llm
+      - name: Medium · nlp
+        url: https://medium.com/feed/tag/nlp
+      - name: Medium · artificial-intelligence
+        url: https://medium.com/feed/tag/artificial-intelligence
+      - name: Medium · yapay-zeka
+        url: https://medium.com/feed/tag/yapay-zeka
+      - name: Towards Data Science
+        url: https://towardsdatascience.com/feed
+      - name: dev.to · machinelearning
+        url: https://dev.to/feed/tag/machinelearning
+      - name: dev.to · llm
+        url: https://dev.to/feed/tag/llm
+      - name: dev.to · ai
+        url: https://dev.to/feed/tag/ai
+      - name: KDnuggets
+        url: https://www.kdnuggets.com/feed
+      - name: Analytics Vidhya
+        url: https://www.analyticsvidhya.com/feed/
+      - name: MarkTechPost
+        url: https://www.marktechpost.com/feed/
+
+  - name: "📚 Öğren: rehberler ve tutoriallar"
+    hours: 168   # bu bloglar haftada birkaç kez yazıyor
+    feeds:
+      - name: Anthropic Engineering   # topluluk aynası
+        url: https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_engineering.xml
+      - name: Hamel Husain
+        url: https://hamel.dev/index.xml
+      - name: Phil Schmid
+        url: https://www.philschmid.de/rss
+      - name: Eugene Yan
+        url: https://eugeneyan.com/rss/
+      - name: Ollama Blog
+        url: https://ollama.com/blog/rss.xml
+      - name: freeCodeCamp
+        url: https://www.freecodecamp.org/news/rss/
+        filter: true
+      - name: Machine Learning Mastery
+        url: https://machinelearningmastery.com/feed/
+      - name: Real Python
+        url: https://realpython.com/atom.xml
+        filter: true
+      - name: dev.to · tutorial
+        url: https://dev.to/feed/tag/tutorial
+        filter: true
+      - name: Medium · llm-tutorial
+        url: https://medium.com/feed/tag/llm-tutorial
+
+  - name: "💬 Tartışmalar"
+    feeds:
+      - name: r/LocalLLaMA (günün en iyileri)
+        url: https://www.reddit.com/r/LocalLLaMA/top/.rss?t=day
+        limit: 10
+      - name: r/MachineLearning (günün en iyileri)
+        url: https://www.reddit.com/r/MachineLearning/top/.rss?t=day
+      - name: Hacker News · LLM (50+ puan)
+        url: https://hnrss.org/newest?q=LLM&points=50
+      - name: Hacker News · ön sayfada AI
+        url: https://hnrss.org/frontpage?q=AI
+
+  - name: "⭐ GitHub Trending"
+    feeds:
+      - name: Python · günlük
+        url: https://mshibanami.github.io/GitHubTrendingRSS/daily/python.xml
+        limit: 12
+
+  - name: "📰 Haberler"
+    feeds:
+      - name: TechCrunch AI
+        url: https://techcrunch.com/category/artificial-intelligence/feed/
+      - name: MIT Technology Review
+        url: https://www.technologyreview.com/topic/artificial-intelligence/feed
+
+  - name: "🎥 Videolar"
+    hours: 168   # kanallar haftada bir-iki video atıyor
+    feeds:
+      # Gündem ve yeni modeller
+      - name: AI Explained
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCNJ1Ymd5yFuUPtn21xtRbbw
+      - name: Matthew Berman
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCawZsQWqfGSbCI5yjkdVkTA
+      - name: Fireship
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCsBjURrPoezykLs9EqgamOA
+        filter: true
+      - name: Latent Space
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCxBcwypKK-W3GHd_RZ9FZrQ
+      - name: Machine Learning Street Talk
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCMLtBahI5DMrt0NPvDSoIRQ
+      # Laboratuvarlar
+      - name: Anthropic
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCrDwWp7EBBv4NwvScIpBDOA
+      - name: OpenAI
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCXZCJLdBC09xxGZ6gcdrc6A
+      - name: Google DeepMind
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCP7jMXSY2xbc3KCAE0MHQ-A
+      - name: Hugging Face
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCHlNU7kIZhRgSbhHvFoy72w
+      # Öğretici
+      - name: Andrej Karpathy
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCXUPKJO5MZQN11PqgIvyuvQ
+      - name: Sam Witteveen
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UC55ODQSvARtgSyc8ThfiepQ
+      - name: DeepLearningAI
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCcIXc5mJsHVYTZR1maL5l9w
+      - name: IBM Technology
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCKWaEZ-_VweaEx1j62do_vQ
+        filter: true
+      - name: Welch Labs
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UConVfxXodg78Tzh5nNu85Ew
+      - name: StatQuest
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCtYLUTtgS3k1Fg4y5tAhLbw
+      - name: Yannic Kilcher
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCZHmQk67mSJgfCCTn7xBfew
+      - name: Two Minute Papers
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg
+      - name: 3Blue1Brown
+        url: https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw
