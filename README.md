@@ -15,9 +15,6 @@ GitHub Actions (her gün 08:00)
        2. son 36 saati al, daha önce alınanları at (seen.json)
        3. hepsini template.html'in içine göm -> site/index.html + site/archive/<tarih>.html
   └─ site/ klasörünü GitHub Pages'e yükle, seen.json'u depoya kaydet
-
-GitHub Actions (her pazar 09:00)
-  └─ digest.py -> haftanın en iyileri -> issue (+ e-posta bildirimi)
 ```
 
 ### Sayfada neler var?
@@ -32,20 +29,13 @@ GitHub Actions (her pazar 09:00)
   - 💡 **Proje çıkar** — yazıdan hafta sonu / bir haftalık / iddialı 3 proje fikri
   - 🧠 **Bugünün beyin fırtınası** — günün öne çıkanlarından trendler ve 5 proje fikri
   - 🎓 **Öğrenme yolu** — bir konu seç; o konudaki tutorial ve videoları listeler, Claude'la adım adım öğrenme planı çıkarır
+- **📅 Son 7 günün en iyileri:** Haftanın taramalarından senin etiketlerine göre seçilen yazılar, videolar ve tutoriallar.
+  Her gün güncellenir; **Haftanın beyin fırtınası** butonu haftayı Claude'la değerlendirir.
 - **⭐ Defterim:** ☆ Kaydet ile beğendiklerini biriktir; **Defterimi özetle** kafanda dönen temaları ve proje önerisini çıkarır.
 - Sağ üstteki tarih menüsünden son 30 günün taramalarına bakabilirsin.
 
 Claude butonları claude.ai'yi hazır bir mesajla açar: API anahtarı ya da ek ücret gerekmez, kendi Claude hesabın kullanılır.
 Profil, etiketler ve defter **sadece o tarayıcıda** saklanır (telefon ve bilgisayar ayrı tutar).
-
-### Haftalık özet (e-posta)
-
-Her pazar 09:00'da `digest.py` son 7 günün taramalarından en iyi yazıları, videoları ve tutorialları seçer ve depoda
-bir **issue** açar. Issue'da etiketlendiğin için GitHub sana e-posta gönderir. Elle denemek için:
-
-```bash
-gh workflow run weekly.yml
-```
 
 Sayfalar büyük olduğu için (arXiv özetleri) git'e konmaz; arşiv yayındaki sitede durur ve
 her çalışmada oradan geri indirilir.

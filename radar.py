@@ -39,6 +39,8 @@ PREVIEW_FILE = ROOT / "output" / "preview.html"
 HEADERS = {"User-Agent": "Mozilla/5.0 (ai-radar kisisel RSS okuyucu)"}
 SEEN_KEEP_DAYS = 30
 ARCHIVE_KEEP_DAYS = 30
+WEEK_DAYS = 7
+WEEK_PER_CATEGORY = 12
 # Özetleri uzun tutuyoruz: etiketler özetin tamamında aranır, sayfa görünümde kısaltır.
 SUMMARY_LEN = 1000
 
@@ -138,7 +140,7 @@ def collect(config, hours, seen):
     with ThreadPoolExecutor(max_workers=10) as pool:
         results = list(pool.map(lambda cf: fetch(cf[1], host_locks), feeds))
 
-    feed_meta, items, errors = [], [], []
+    feed_meta, items, errors, titles = [], [], [], set()
     for index, ((category, feed), (entries, error)) in enumerate(zip(feeds, results)):
         feed_meta.append({
             "name": feed["name"], "cat": category,
@@ -156,10 +158,14 @@ def collect(config, hours, seen):
             key = hashlib.sha1(link.encode()).hexdigest()[:16]
             if key in seen:
                 continue
+            title = clean_text(entry.get("title"), 200)
+            if title.lower() in titles:  # aynı yazı farklı linkle başka akışta (ör. Medium etiketleri)
+                continue
+            titles.add(title.lower())
             seen[key] = None  # aynı yazı iki kaynakta varsa bir kez al
             items.append({
                 "key": key,
-                "t": clean_text(entry.get("title"), 200),
+                "t": title,
                 "l": link,
                 "s": clean_text(entry.get("summary"), SUMMARY_LEN),
                 "f": index,
@@ -201,6 +207,55 @@ def restore_archive(site_url):
             target.write_bytes(r.content)
             restored += 1
     print(f"arşivden {restored}/{len(stamps)} sayfa geri yüklendi")
+
+
+def read_page_data(path):
+    """Arşiv sayfasına gömülü veriyi (const D = {...}) okur."""
+    page = path.read_text(encoding="utf-8")
+    start = page.index("const D = ") + len("const D = ")
+    end = page.index(";\nconst STORE", start)
+    return json.loads(page[start:end])
+
+
+def pattern(tag):
+    """template.html'deki eşleştirmenin aynısı: tam kelime + çekimli haller."""
+    tag = tag.rstrip("*").lower()
+    m = re.match(r"^(.{4,})(ization|isation|ation)$", tag) or (
+        re.search(r"[-\s]", tag) and re.match(r"^(.{4,})ing$", tag))
+    body = re.escape(m.group(1)) + r"\w*" if m else re.escape(tag) + "(?:s|es)?"
+    return re.compile(rf"(?<!\w){body}(?!\w)")
+
+
+def week_candidates(data):
+    """Son 7 günün (arşiv + bu tarama) en iyi adaylarını seçer; asıl sıralamayı sayfa yapar.
+
+    Haftada ~10 bin yazı birikiyor, hepsini gömmek sayfayı şişirir. Bu yüzden varsayılan
+    etiketlerle ön eleme yapıp her kategoriden en iyi WEEK_PER_CATEGORY yazıyı alıyoruz.
+    """
+    limit = (datetime.now() - timedelta(days=WEEK_DAYS)).strftime("%Y-%m-%d")
+    pages = [read_page_data(p) for p in sorted(ARCHIVE_DIR.glob("*.html")) if p.stem[:10] >= limit]
+    patterns = [pattern(tag) for tag in data["interests"]]
+    pool = {}
+    for page in pages + [data]:
+        for item in page["items"]:
+            feed = page["feeds"][item["f"]]
+            text = f"{item['t']} {item['s']}".lower()
+            hits = sum(1 for p in patterns if p.search(text))
+            key = item["t"].lower()  # başlığa göre: aynı yazı farklı linklerle gelebiliyor
+            if hits and key not in pool:
+                pool[key] = (hits, {
+                    "t": item["t"], "l": item["l"], "s": item["s"][:400], "d": item["d"],
+                    "src": feed["name"], "cat": page["categories"][feed["cat"]],
+                    **({"img": item["img"]} if item.get("img") else {}),
+                })
+    ranked = [entry for _, entry in sorted(pool.values(), key=lambda p: (p[0], p[1]["d"] or ""), reverse=True)]
+    # Kategori başına kota: yoksa uzun ve kelime dolu arXiv özetleri tüm listeyi kaplıyor
+    chosen, per_category = [], {}
+    for entry in ranked:
+        per_category[entry["cat"]] = per_category.get(entry["cat"], 0) + 1
+        if per_category[entry["cat"]] <= WEEK_PER_CATEGORY:
+            chosen.append(entry)
+    return chosen
 
 
 def publish(data, stamp):
@@ -257,10 +312,12 @@ def main():
     if args.publish:
         if args.restore:
             restore_archive(args.restore)
+        data["week"] = week_candidates(data)
         out = publish(data, f"{now:%Y-%m-%d_%H%M}")
         seen.update({key: today for key in keys})
         save_seen(seen)
     else:
+        data["week"] = week_candidates(data)
         PREVIEW_FILE.parent.mkdir(exist_ok=True)
         PREVIEW_FILE.write_text(render({**data, "archive": [], "current": None, "base": ""}), encoding="utf-8")
         out = PREVIEW_FILE

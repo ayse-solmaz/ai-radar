@@ -59,9 +59,10 @@
   }
   .btn[aria-disabled] { opacity:.45; cursor:not-allowed; }
   .mini { list-style:none; padding:0; margin:10px 0 0; }
-  .mini li { display:flex; gap:8px; align-items:baseline; padding:6px 0; border-top:1px solid var(--line); font-size:14px; }
-  .mini li a { color:var(--text); font-weight:500; text-decoration:none; flex:1; overflow-wrap:anywhere; }
-  .mini li a:hover { text-decoration:underline; }
+  .mini li { display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; padding:7px 0; border-top:1px solid var(--line); font-size:14px; }
+  .mini li > a:first-child { color:var(--text); font-weight:500; text-decoration:none; flex:1 1 100%; overflow-wrap:anywhere; }
+  .mini li > a:first-child:hover { text-decoration:underline; }
+  .mini li .ask { padding:0 8px; }
   .mini li small { color:var(--muted); white-space:nowrap; }
   .mini li button { background:none; border:0; color:var(--muted); padding:0 4px; }
   .empty-note { color:var(--muted); font-size:13.5px; margin:8px 0 0; }
@@ -122,6 +123,13 @@
       <button class="btn primary" type="submit">Göster</button>
     </form>
     <div id="learn-out" lang="en"></div>
+  </details>
+
+  <details id="week" class="panel">
+    <summary>📅 Son 7 günün en iyileri</summary>
+    <p class="hint">Son bir haftanın taramalarından, senin etiketlerine göre seçildi. Her gün güncellenir.</p>
+    <div id="week-out" lang="en"></div>
+    <div class="tools"><a class="btn primary" id="week-brainstorm" target="_blank" rel="noopener">🧠 Haftanın beyin fırtınası</a></div>
   </details>
 
   <details id="notebook" class="panel">
@@ -250,7 +258,8 @@ function aboutMe() {
   return p ? `Hakkımda: ${p}\n\n` : "Yapay zekayı teknik olarak takip eden biriyim ama her konunun uzmanı değilim.\n\n";
 }
 const short = (s, n) => s.length > n ? s.slice(0, n).replace(/\s+\S*$/, "") + "…" : s;
-const itemLine = (item, n) => `${n + 1}. ${item.t} (${D.feeds[item.f].name}) — ${item.l}` + (item.s ? `\n   ${short(item.s, 160)}` : "");
+const sourceName = item => item.src ?? D.feeds[item.f].name;  // haftalık adaylar kaynak adını kendisi taşır
+const itemLine = (item, n) => `${n + 1}. ${item.t} (${sourceName(item)}) — ${item.l}` + (item.s ? `\n   ${short(item.s, 160)}` : "");
 
 function simplifyURL(item) {
   return claudeURL(`${aboutMe()}Şu içeriği oku: ${item.l}\nBaşlık: ${item.t}\n\n` +
@@ -334,6 +343,39 @@ function renderLearn(topic) {
     `<div class="tools" lang="tr"><a class="btn primary" href="${esc(learnURL(topic, items))}" target="_blank" rel="noopener">🎓 Claude ile öğrenme yolu çıkar</a></div>`;
 }
 
+// ---------- Son 7 günün en iyileri ----------
+// Python varsayılan etiketlerle ~90 aday seçip gömer; burada kullanıcının etiketleriyle sıralanır.
+const WEEK = (D.week || []).map(w => ({ ...w, lc: `${w.t} ${w.s}`.toLowerCase(), time: w.d ? Date.parse(w.d) : 0 }));
+
+function pickTop(items, count, perSource, where) {
+  const per = {};
+  return items.filter(where).sort(byScore)
+    .filter(i => (per[i.src] = (per[i.src] || 0) + 1) <= perSource)
+    .slice(0, count);
+}
+function renderWeek(pats, active) {
+  if (!WEEK.length) { $("week").hidden = true; return; }
+  for (const w of WEEK) w.hits = pats.filter(([t, re]) => active.includes(t) && re.test(w.lc)).map(([t]) => t);
+  const top = pickTop(WEEK, 8, 2, w => w.hits.length >= D.highlightMin && w.hits.some(t => pattern(t.toLowerCase()).test(w.t.toLowerCase())));
+  const rest = WEEK.filter(w => !top.includes(w));
+  const groups = [
+    ["🎯 Öne çıkanlar", top],
+    ["🎥 İzlemeye değer", pickTop(rest, 4, 1, w => /Video/.test(w.cat))],
+    ["📚 Öğren", pickTop(rest, 4, 1, w => /Öğren/.test(w.cat))],
+  ];
+  $("week-out").innerHTML = groups.filter(([, items]) => items.length).map(([title, items]) =>
+    `<h3 lang="tr">${title}</h3><ul class="mini">${items.map(w =>
+      `<li><a href="${esc(w.l)}" target="_blank" rel="noopener">${esc(w.t)}</a>` +
+      `<small>${esc(w.src)}</small>` +
+      `<a class="ask" href="${esc(simplifyURL(w))}" target="_blank" rel="noopener" title="Basitleştir ve tartış" lang="tr">🤖</a>` +
+      `<a class="ask" href="${esc(projectURL(w))}" target="_blank" rel="noopener" title="Proje çıkar" lang="tr">💡</a></li>`).join("")}</ul>`).join("");
+  const all = groups.flatMap(([, items]) => items);
+  $("week-brainstorm").href = claudeURL(`${aboutMe()}Bu hafta yapay zeka dünyasında öne çıkanlar:\n${all.map(itemLine).join("\n")}\n\n` +
+    "Kafamdaki beyin gibi davran:\n1. Haftanın 3 ana trendini çıkar.\n" +
+    "2. Bunlardan beslenen, bana uygun 5 yaratıcı proje fikri üret (biri çılgın olsun).\n" +
+    "3. Bu hafta öğrenmem gereken tek konuyu seç ve nedenini söyle.\n\nSonra beyin fırtınasına devam edelim. Türkçe yaz.");
+}
+
 function renderItem(item) {
   const feed = D.feeds[item.f];
   const badges = item.hits.map(h => `<span class="badge">${esc(h)}</span>`).join(" ");
@@ -401,6 +443,7 @@ function render() {
   // Beyin fırtınası: öne çıkanlar, azsa en yüksek puanlı diğer yazılarla tamamlanır
   const picks = highlights.concat(visible.filter(i => !highlights.includes(i)).sort(byScore)).slice(0, 8);
   $("brainstorm").href = brainstormURL(picks);
+  renderWeek(pats, active);
   $("learn-tags").innerHTML = active.map(t => `<option value="${esc(t)}">`).join("");
 
   const links = (highlights.length ? [`<a href="#top">🎯 <b>${highlights.length}</b></a>`] : []).concat(
@@ -466,7 +509,7 @@ $("nb-list").addEventListener("click", e => {
 $("learn-form").addEventListener("submit", e => { e.preventDefault(); renderLearn($("learn-input").value); });
 
 // Panellerin açık/kapalı durumunu hatırla (ilk ziyarette Mini ben ve etiketler açık)
-for (const [id, openByDefault] of [["me", true], ["notebook", false], ["tags", true]]) {
+for (const [id, openByDefault] of [["me", true], ["week", true], ["notebook", false], ["tags", true]]) {
   const key = `ai-radar.open.${id}`;
   $(id).open = store.get(key, openByDefault);
   $(id).addEventListener("toggle", () => store.set(key, $(id).open));
