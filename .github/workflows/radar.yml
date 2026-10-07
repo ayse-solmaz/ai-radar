@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 5 * * *"   # her gün 05:00 UTC = 08:00 Türkiye saati
   workflow_dispatch:       # Actions sekmesinden elle de çalıştırılabilir
+    inputs:
+      all:
+        description: "Daha önce gösterilenleri de tekrar göster"
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # seen.json'u kaydetmek için
@@ -36,7 +41,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Kaynakları tara ve siteyi üret
-        run: python radar.py --publish --no-open --restore "${{ steps.pages.outputs.base_url }}"
+        run: python radar.py --publish --no-open --restore "${{ steps.pages.outputs.base_url }}" ${{ inputs.all && '--all' || '' }}
 
       - name: seen.json'u kaydet
         run: |
