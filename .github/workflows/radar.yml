@@ -1,8 +1,11 @@
 name: AI Radar
 
 on:
+  # GitHub zamanlamaları garanti değil: saat başında (:00) sık sık gecikiyor ya da atlanıyor.
+  # Bu yüzden sakin bir dakika + yedek bir saat; o gün tarama yapıldıysa yedek hiçbir şey yapmaz.
   schedule:
-    - cron: "0 5 * * *"   # her gün 05:00 UTC = 08:00 Türkiye saati
+    - cron: "17 4 * * *"   # 07:17 Türkiye saati
+    - cron: "47 6 * * *"   # 09:47 yedek
   workflow_dispatch:       # Actions sekmesinden elle de çalıştırılabilir
     inputs:
       all:
@@ -20,7 +23,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Zamanlanmış çalışmada: bugün zaten tarandıysa (canlı arşivde bugünün tarihi varsa) atla.
+  # Yoksa ikinci tarama, sayfayı sadece aradaki birkaç yeni yazıyla değiştirirdi.
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      done_today: ${{ steps.check.outputs.done_today }}
+    env:
+      TZ: Europe/Istanbul
+    steps:
+      - id: check
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] &&
+             curl -fs "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/archive/list.json" |
+             grep -q "\"$(date +%Y-%m-%d)_"; then
+            echo "Bugün zaten tarandı, atlanıyor."
+            echo "done_today=true" >> "$GITHUB_OUTPUT"
+          fi
+
   radar:
+    needs: check
+    if: needs.check.outputs.done_today != 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
