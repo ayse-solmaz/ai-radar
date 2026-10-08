@@ -12,6 +12,10 @@ on:
         description: "Daha önce gösterilenleri de tekrar göster"
         type: boolean
         default: false
+      reset_archive:
+        description: "Arşivi sıfırla (tarih menüsünde sadece bugün kalır)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # seen.json'u kaydetmek için
@@ -64,7 +68,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Kaynakları tara ve siteyi üret
-        run: python radar.py --publish --no-open --restore "${{ steps.pages.outputs.base_url }}" ${{ inputs.all && '--all' || '' }}
+        run: python radar.py --publish --no-open --restore "${{ steps.pages.outputs.base_url }}" ${{ inputs.all && '--all' || '' }} ${{ inputs.reset_archive && '--reset-archive' || '' }}
 
       - name: seen.json'u kaydet
         run: |

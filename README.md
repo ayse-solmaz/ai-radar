@@ -32,7 +32,8 @@ GitHub Actions (her gün 08:00)
 - **📅 Son 7 günün en iyileri:** Haftanın taramalarından senin etiketlerine göre seçilen yazılar, videolar ve tutoriallar.
   Her gün güncellenir; **Haftanın beyin fırtınası** butonu haftayı Claude'la değerlendirir.
 - **⭐ Defterim:** ☆ Kaydet ile beğendiklerini biriktir; **Defterimi özetle** kafanda dönen temaları ve proje önerisini çıkarır.
-- Sağ üstteki tarih menüsünden son 30 günün taramalarına bakabilirsin.
+- Sağ üstteki tarih menüsünden son 14 güne bakabilirsin. Her gün tek sayfadır: gün içinde tekrar taranırsa
+  yeni yazılar o günün sayfasına eklenir. Daha eski günler kendiliğinden silinir.
 
 Claude butonları claude.ai'yi hazır bir mesajla açar: API anahtarı ya da ek ücret gerekmez, kendi Claude hesabın kullanılır.
 Profil, etiketler ve defter **sadece o tarayıcıda** saklanır (telefon ve bilgisayar ayrı tutar).
@@ -52,7 +53,11 @@ Bu bir **önizleme**dir: `output/preview.html` açılır, `seen.json`'a dokunulm
 
 ## Siteyi elle güncellemek
 
-GitHub'da **Actions → AI Radar → Run workflow**, ya da:
+GitHub'da **Actions → AI Radar → Run workflow**. İki seçenek var:
+- *Daha önce gösterilenleri de tekrar göster:* son 36 saatin tüm yazılarını yeniden alır
+- *Arşivi sıfırla:* tarih menüsünde sadece bugün kalır
+
+Ya da komut satırından:
 
 ```bash
 gh workflow run radar.yml

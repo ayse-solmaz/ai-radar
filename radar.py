@@ -8,7 +8,9 @@ Kullanım:
     python radar.py --hours 72   # daha geniş zaman aralığı
     python radar.py --publish    # siteyi site/ içine yaz, seen.json'u güncelle (GitHub Actions bunu çalıştırır)
     python radar.py --publish --restore https://kullanici.github.io/ai-radar/
-                                 # önceki taramaları canlı siteden indirip arşive ekle
+                                 # önceki günleri canlı siteden indirip arşive ekle
+    python radar.py --publish --restore URL --reset-archive
+                                 # arşivi sıfırla: sadece bugünün sayfası kalır
     python radar.py --publish --all   # daha önce gösterilenleri de tekrar al
     python radar.py --no-open    # sayfayı tarayıcıda açma
 """
@@ -38,7 +40,7 @@ ARCHIVE_DIR = SITE_DIR / "archive"
 PREVIEW_FILE = ROOT / "output" / "preview.html"
 HEADERS = {"User-Agent": "Mozilla/5.0 (ai-radar kisisel RSS okuyucu)"}
 SEEN_KEEP_DAYS = 30
-ARCHIVE_KEEP_DAYS = 30
+ARCHIVE_KEEP_DAYS = 14
 WEEK_DAYS = 7
 WEEK_PER_CATEGORY = 12
 # Özetleri uzun tutuyoruz: etiketler özetin tamamında aranır, sayfa görünümde kısaltır.
@@ -182,8 +184,8 @@ def render(data):
     return TEMPLATE.read_text(encoding="utf-8").replace("/*__DATA__*/null", payload)
 
 
-def restore_archive(site_url):
-    """Önceki taramaları canlı siteden indirir.
+def restore_archive(site_url, since=""):
+    """Önceki taramaları canlı siteden indirir (`since` tarihinden eskileri atlar).
 
     Sayfalar büyük olduğu için git'e konmuyor; arşiv yayındaki sitenin kendisinde duruyor.
     """
@@ -197,7 +199,10 @@ def restore_archive(site_url):
     restored = 0
     for stamp in stamps:
         target = ARCHIVE_DIR / f"{stamp}.html"
-        if not isinstance(stamp, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}_\d{4}", stamp) or target.exists():
+        # "2026-10-08" (günlük) ya da eski biçim "2026-10-07_1438"
+        if not isinstance(stamp, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}(_\d{4})?", stamp):
+            continue
+        if stamp[:10] < since or target.exists():
             continue
         try:
             r = requests.get(f"{base}{stamp}.html", headers=HEADERS, timeout=30)
@@ -258,14 +263,44 @@ def week_candidates(data):
     return chosen
 
 
-def publish(data, stamp):
-    """Sayfayı site/archive/<tarih>.html ve site/index.html olarak yazar, eski arşivi siler."""
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-    limit = (datetime.now() - timedelta(days=ARCHIVE_KEEP_DAYS)).strftime("%Y-%m-%d")
-    for old in ARCHIVE_DIR.glob("*.html"):
-        if old.stem[:10] < limit:
-            old.unlink()
+def merge_today(data, day):
+    """Gün içindeki önceki taramanın yazılarını bu taramaya ekler.
 
+    Arşivde her gün tek sayfa var; gün içinde tekrar taranırsa (elle çalıştırma, yedek zamanlama)
+    sayfa sadece aradaki birkaç yeni yazıya düşmesin diye günün yazıları birleştirilir.
+    """
+    pages = sorted(ARCHIVE_DIR.glob(f"{day}*.html"))
+    if not pages:
+        return
+    old = read_page_data(pages[-1])  # günün son sayfası o güne kadarki her şeyi içerir
+    feed_index = {feed["name"]: n for n, feed in enumerate(data["feeds"])}
+    links = {item["l"] for item in data["items"]}
+    for item in old["items"]:
+        name = old["feeds"][item["f"]]["name"]
+        if name in feed_index and item["l"] not in links:  # feeds.yaml'dan çıkarılan kaynaklar düşer
+            data["items"].append({**item, "f": feed_index[name]})
+
+
+def tidy_archive():
+    """Her gün için tek sayfa bırakır (en yenisi, adı sadece tarih) ve eski günleri siler."""
+    limit = (datetime.now() - timedelta(days=ARCHIVE_KEEP_DAYS)).strftime("%Y-%m-%d")
+    by_day = {}
+    for page in sorted(ARCHIVE_DIR.glob("*.html")):
+        by_day.setdefault(page.stem[:10], []).append(page)
+    for day, pages in by_day.items():
+        *older, newest = pages
+        for page in older:
+            page.unlink()
+        if day < limit:
+            newest.unlink()
+        elif newest.stem != day:
+            newest.rename(ARCHIVE_DIR / f"{day}.html")
+
+
+def publish(data, stamp):
+    """Sayfayı site/archive/<tarih>.html ve site/index.html olarak yazar."""
+    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+    tidy_archive()
     archive = sorted({p.stem for p in ARCHIVE_DIR.glob("*.html")} | {stamp}, reverse=True)
     (ARCHIVE_DIR / f"{stamp}.html").write_text(
         render({**data, "archive": archive, "current": stamp, "base": ""}), encoding="utf-8")
@@ -284,6 +319,7 @@ def main():
     parser.add_argument("--hours", type=int, help="son kaç saat taransın (varsayılan: feeds.yaml)")
     parser.add_argument("--publish", action="store_true", help="siteyi docs/ içine yaz ve seen.json'u güncelle")
     parser.add_argument("--restore", metavar="URL", help="önceki taramaları bu siteden indir (--publish ile)")
+    parser.add_argument("--reset-archive", action="store_true", help="önceki günleri geri yükleme (arşivi sıfırla)")
     parser.add_argument("--all", action="store_true", help="daha önce gösterilenleri de al (--publish ile)")
     parser.add_argument("--no-open", action="store_true", help="sayfayı tarayıcıda açma")
     args = parser.parse_args()
@@ -309,11 +345,13 @@ def main():
     }
 
     keys = [item.pop("key") for item in items]
+    new_count = len(items)  # merge_today aynı listeye günün önceki yazılarını ekler
     if args.publish:
         if args.restore:
-            restore_archive(args.restore)
+            restore_archive(args.restore, since=today if args.reset_archive else "")
+        merge_today(data, today)
         data["week"] = week_candidates(data)
-        out = publish(data, f"{now:%Y-%m-%d_%H%M}")
+        out = publish(data, today)
         seen.update({key: today for key in keys})
         save_seen(seen)
     else:
@@ -322,7 +360,7 @@ def main():
         PREVIEW_FILE.write_text(render({**data, "archive": [], "current": None, "base": ""}), encoding="utf-8")
         out = PREVIEW_FILE
 
-    print(f"{len(items)} yeni içerik, {len(errors)} kaynak hatası, {time.time() - started:.0f} sn -> {out}")
+    print(f"{new_count} yeni içerik (sayfada toplam {len(items)}), {len(errors)} kaynak hatası, {time.time() - started:.0f} sn -> {out}")
     for e in errors:
         print("  hata:", e)
     if not args.no_open:
